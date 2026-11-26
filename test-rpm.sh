@@ -21,6 +21,7 @@
 #   <저장소 ID>.spec  spec 파일 (폴더 이름 = 저장소 ID)
 #   test-env.sh      검사 설정: 패키지 이름, 버전 매크로, tarball 주소 (호스트에서 읽음)
 #                    버전 목록 함수 list_versions() 가 있으면 자동 선택에 사용
+#                    MIN_VERSIONS=1 이면 릴리스가 하나뿐일 때 그 버전만 검사 (업데이트 단계는 test-inner.sh 가 생략)
 #   test-inner.sh    설치/기동/업데이트/삭제 검사 6~9단계 (컨테이너에서 실행)
 #   버전 폴더에 test-env.sh / test-inner.sh 가 없으면 packages/<제품>/common/ 의 것을 사용
 #
@@ -127,9 +128,9 @@ detect_versions() {
         [ "${#found[@]}" -ge 2 ] && break
       fi
     done < <(list_versions | sort -rV)
-    [ "${#found[@]}" -ge 2 ] || die "다운로드 가능한 $VER_PREFIX.x 버전이 2개 미만입니다: ${found[*]:-없음}"
+    [ "${#found[@]}" -ge "${MIN_VERSIONS:-2}" ] || die "다운로드 가능한 $VER_PREFIX.x 버전이 ${MIN_VERSIONS:-2}개 미만입니다: ${found[*]:-없음}"
     echo "    선택: ${found[*]}" >&2
-    echo "${found[0]} ${found[1]}"
+    echo "${found[0]} ${found[1]:-${found[0]}}"
     return
   fi
   echo "    $VER_PREFIX.x 다운로드 가능 버전 확인 중 ($(version_url "$VER_PREFIX.0" | cut -d/ -f3)) ..." >&2
@@ -146,9 +147,9 @@ detect_versions() {
     fi
     n=$((n+1))
   done
-  [ "${#found[@]}" -ge 2 ] || die "다운로드 가능한 $VER_PREFIX.x 버전이 2개 미만입니다: ${found[*]:-없음}"
+  [ "${#found[@]}" -ge "${MIN_VERSIONS:-2}" ] || die "다운로드 가능한 $VER_PREFIX.x 버전이 ${MIN_VERSIONS:-2}개 미만입니다: ${found[*]:-없음}"
   echo "    발견: ${found[*]}" >&2
-  echo "${found[${#found[@]}-2]} ${found[${#found[@]}-1]}"
+  [ "${#found[@]}" -ge 2 ] && echo "${found[${#found[@]}-2]} ${found[${#found[@]}-1]}" || echo "${found[0]} ${found[0]}"
 }
 if [ -z "$OLD_VER" ] || [ -z "$NEW_VER" ]; then
   log "검사 버전 자동 선택 (최신 2개)"
