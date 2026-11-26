@@ -22,6 +22,9 @@
 #   test-env.sh      검사 설정: 패키지 이름, 버전 매크로, tarball 주소 (호스트에서 읽음)
 #                    버전 목록 함수 list_versions() 가 있으면 자동 선택에 사용
 #                    MIN_VERSIONS=1 이면 릴리스가 하나뿐일 때 그 버전만 검사 (업데이트 단계는 test-inner.sh 가 생략)
+#                    test_setup() 이 있으면 검사 전에 호출 (DB 서버 같은 보조 컨테이너 준비).
+#                      검사 컨테이너에 줄 docker run 옵션은 TEST_RUN_ARGS 배열에 추가 (--network, -e 등)
+#                    test_cleanup() 이 있으면 검사 후 호출 (KEEP=1 이면 호출하지 않음)
 #   test-inner.sh    설치/기동/업데이트/삭제 검사 6~9단계 (컨테이너에서 실행)
 #   버전 폴더에 test-env.sh / test-inner.sh 가 없으면 packages/<제품>/common/ 의 것을 사용
 #
@@ -316,7 +319,18 @@ for v in http_proxy https_proxy no_proxy HTTP_PROXY HTTPS_PROXY NO_PROXY; do
   [ -n "${!v:-}" ] && PROXY_ENV+=(-e "$v=${!v}")
 done
 
-trap 'echo; docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true; exit 130' INT TERM
+# 보조 컨테이너 (test-env.sh 의 test_setup / test_cleanup)
+TEST_RUN_ARGS=()
+run_test_cleanup() {
+  [ "${KEEP:-0}" = "1" ] && return 0
+  declare -F test_cleanup >/dev/null && test_cleanup >/dev/null 2>&1 || true
+}
+if declare -F test_setup >/dev/null; then
+  log "검사 준비 (test-env.sh 의 test_setup)"
+  test_setup || { run_test_cleanup; die "검사 준비 실패 (test_setup)"; }
+fi
+
+trap 'echo; docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true; run_test_cleanup; exit 130' INT TERM
 
 log "컨테이너 검사 시작: $CONTAINER_NAME ($TEST_IMAGE)"
 set +e
@@ -327,10 +341,12 @@ docker run ${RM_OPT[@]+"${RM_OPT[@]}"} --name "$CONTAINER_NAME" \
   -e OLD_VER="$OLD_VER" -e NEW_VER="$NEW_VER" -e REPO_ID="$REPO_ID" -e REL="$REL" \
   -e PKG="$PKG" -e REPO_NAME="${REPO_NAME:-$REPO_ID}" -e TARGET_OS="$TARGET_OS" \
   ${PROXY_ENV[@]+"${PROXY_ENV[@]}"} \
+  ${TEST_RUN_ARGS[@]+"${TEST_RUN_ARGS[@]}"} \
   "$TEST_IMAGE" bash /work/inner-test.sh
 rc=$?
 set -e
 trap - INT TERM
+run_test_cleanup
 
 if [ "${KEEP:-0}" = "1" ]; then
   echo

@@ -21,6 +21,7 @@ rpmbuilder/
 │  │  └─ <저장소 ID>/      <저장소 ID>.spec  (+ 이 버전에만 필요한 파일)
 │  ├─ mysql/      common/  mysql84/  mysql97/  mysql2610/
 │  ├─ mongodb/    common/  mongodb83/  mongodb90/  mongosh2/  mongodb-tools100/  mongodbtop0/
+│  ├─ mssql/      mssqltop0/
 │  ├─ postgresql/ postgresql19/
 │  └─ datadog/    datadog-agent7/  windows/ (Windows MSI 미러/설치 스크립트)
 ├─ sources/                내려받은 원본 (자동, 커밋하지 않음)

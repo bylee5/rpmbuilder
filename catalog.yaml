@@ -84,6 +84,10 @@ postgresql:
   - { package: postgres-exporter,    repo: postgres-exporter, status: todo, source_type: go-bin, vendor: prometheus-community, page: https://github.com/prometheus-community/postgres_exporter/releases,
       verify: "릴리스 체크섬", notes: "" }
 
+mssql:
+  - { package: mssqltop,             repo: mssqltop0, status: done, source_type: source, vendor: bylee5, page: https://github.com/bylee5/mssqltop/releases,
+      verify: "휠 sha256(spec 고정)", notes: "SQL Server Python TUI 모니터. 시스템 python3(3.9), pyodbc 5.3.0 휠 동봉, Requires unixODBC, Recommends msodbcsql18(Microsoft 저장소, 서버에서 별도 설치). 설정 /etc/mssqltop/mssqltop.ini" }
+
 monitoring:
   - { package: datadog-agent,        repo: datadog-agent7, status: done, source_type: rpm, vendor: Datadog, page: https://yum.datadoghq.com/stable/7/x86_64/,
       verify: "벤더 RPM GPG 서명 (rpm -K, 현재 빌드에서 자동 검증 안 함)", notes: "공식 RPM 의 파일·권한·스크립트를 그대로 옮기고 Epoch 2·N.DBA 만 변경. 이름은 벤더 installer 의존 때문에 유지. datadog.yaml(API 키)은 패키지에 넣지 않음" }
