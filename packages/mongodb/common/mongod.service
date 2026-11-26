@@ -1,0 +1,41 @@
+# mongod.service : MongoDB 서버 (mongodb 패키지 소유)
+#   설정 파일 : /etc/mongodb/mongod.conf
+#
+# 데이터 파일은 첫 기동 시 mongod 가 직접 만든다 (별도 초기화 단계 없음).
+# 서버별 설정 변경은 이 파일이 아니라 'systemctl edit mongod' 로 한다.
+# 제한값(Limit*)은 MongoDB 공식 패키지의 권장값과 같다.
+
+[Unit]
+Description=MongoDB Database Server
+Documentation=https://docs.mongodb.org/manual
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/mongodb/mongod.conf
+
+[Service]
+Type=simple
+User=mongodb
+Group=mongodb
+ExecStart=/opt/mongodb/bin/mongod --config /etc/mongodb/mongod.conf
+# file size
+LimitFSIZE=infinity
+# cpu time
+LimitCPU=infinity
+# virtual memory size
+LimitAS=infinity
+# open files
+LimitNOFILE=64000
+# processes/threads
+LimitNPROC=64000
+# locked memory
+LimitMEMLOCK=infinity
+# total threads (user+kernel)
+TasksMax=infinity
+TasksAccounting=false
+TimeoutStopSec=900
+Restart=on-failure
+# 설정 오류(종료 코드 2 등)로 실패하면 반복 재시작하지 않음
+RestartPreventExitStatus=2 14 48 100
+
+[Install]
+WantedBy=multi-user.target

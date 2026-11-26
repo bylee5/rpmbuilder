@@ -1,0 +1,11 @@
+{
+  // 이 폴더의 파일은 리눅스 서버에서 실행되므로 LF 줄바꿈, BOM 없는 UTF-8 로 저장
+  "files.eol": "\n",
+  "files.encoding": "utf8",
+  "files.insertFinalNewline": true,
+  "files.associations": {
+    "*.spec": "shellscript",
+    "*.service": "ini",
+    "*.cnf": "ini"
+  }
+}

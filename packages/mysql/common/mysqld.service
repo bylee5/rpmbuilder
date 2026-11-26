@@ -1,0 +1,34 @@
+# mysqld.service : MySQL 서버 (mysql 패키지 소유)
+#   설정 파일 : /etc/mysql/my.cnf
+#
+# 최초 기동 시 자동 초기화:
+#   my.cnf 의 datadir 이 비어 있으면 기동 전에 mysqld --initialize 를 실행한다.
+#   임시 root 비밀번호는 에러 로그에 남는다:
+#     grep 'temporary password' /data/mysql/logs/mysqld.err
+#   lower_case_table_names 등 초기화 이후 바꿀 수 없는 설정은 첫 기동 전에 my.cnf 에서 확정할 것.
+#   이미 초기화된 데이터가 있으면(재시작, 업그레이드) 아무것도 하지 않는다.
+#
+# 서버별 설정 변경은 이 파일이 아니라 'systemctl edit mysqld' 로 한다.
+# generic tarball 빌드는 systemd notify를 지원하지 않으므로 Type=simple 사용
+# ($$ 는 systemd 가 $ 로 바꿔 셸에 전달한다)
+
+[Unit]
+Description=MySQL Server
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/mysql/my.cnf
+
+[Service]
+Type=simple
+User=mysql
+Group=mysql
+ExecStartPre=/bin/sh -c 'd=$$(/opt/mysql/bin/my_print_defaults --defaults-file=/etc/mysql/my.cnf mysqld | sed -n "s/^--datadir=//p" | tail -1); [ -n "$$d" ] || { echo "my.cnf 에 datadir 이 없습니다" >&2; exit 1; }; [ -n "$$(ls -A "$$d" 2>/dev/null)" ] || exec /opt/mysql/bin/mysqld --defaults-file=/etc/mysql/my.cnf --initialize'
+ExecStart=/opt/mysql/bin/mysqld --defaults-file=/etc/mysql/my.cnf
+LimitNOFILE=65535
+TimeoutStartSec=600
+TimeoutStopSec=900
+Restart=on-failure
+RestartPreventExitStatus=1
+
+[Install]
+WantedBy=multi-user.target

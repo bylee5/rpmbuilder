@@ -1,0 +1,41 @@
+# postgresql.service : PostgreSQL 서버 (postgresql 패키지 소유)
+#   설정 파일 : /etc/postgresql/postgresql.conf (data_directory 로 데이터 위치 지정)
+#
+# 최초 기동 시 자동 초기화:
+#   data_directory 가 비어 있으면 기동 전에 initdb 를 실행한다.
+#   인코딩/로캘/체크섬은 초기화 후 바꿀 수 없으므로, 바꾸려면 첫 기동 전에
+#   'systemctl edit postgresql' 로 PGSETUP_INITDB_OPTIONS 를 지정한다.
+#   이미 초기화된 데이터가 있으면(재시작, 업그레이드) 아무것도 하지 않는다.
+#
+# 서버별 설정 변경은 이 파일이 아니라 'systemctl edit postgresql' 로 한다.
+# ($$ 는 systemd 가 $ 로 바꿔 셸에 전달한다)
+
+[Unit]
+Description=PostgreSQL Server
+Documentation=https://www.postgresql.org/docs/
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/postgresql/postgresql.conf
+
+[Service]
+Type=notify
+User=postgres
+Group=postgres
+# 값에 공백이 있으므로 따옴표 필수
+Environment="PGSETUP_INITDB_OPTIONS=--encoding=UTF8 --locale=C.UTF-8 --data-checksums"
+# 리눅스 OOM killer 가 postmaster 를 먼저 죽이지 않게 하고, 자식 프로세스는 기본값으로
+OOMScoreAdjust=-1000
+Environment=PG_OOM_ADJUST_FILE=/proc/self/oom_score_adj
+Environment=PG_OOM_ADJUST_VALUE=0
+ExecStartPre=/bin/sh -c 'd=$$(/opt/postgresql/bin/postgres -c config_file=/etc/postgresql/postgresql.conf -C data_directory) && [ -n "$$d" ] || { echo "postgresql.conf 에서 data_directory 를 읽지 못했습니다" >&2; exit 1; }; [ -n "$$(ls -A "$$d" 2>/dev/null)" ] || exec /opt/postgresql/bin/initdb -D "$$d" $$PGSETUP_INITDB_OPTIONS'
+ExecStart=/opt/postgresql/bin/postgres -c config_file=/etc/postgresql/postgresql.conf
+ExecReload=/bin/kill -HUP $MAINPID
+# SIGINT = fast shutdown (접속 중인 세션 종료 후 정상 종료)
+KillMode=mixed
+KillSignal=SIGINT
+TimeoutStartSec=600
+TimeoutStopSec=900
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

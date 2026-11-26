@@ -1,0 +1,7 @@
+# 내려받은 원본 tarball / RPM (대용량, 다시 받을 수 있음)
+sources/
+# 빌드 결과 = S3 에 올리는 내용 (git 이 아닌 S3 에서 관리)
+dist/
+# 작업 공간 (자동 생성)
+_build/
+*.part
