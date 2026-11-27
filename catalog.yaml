@@ -81,6 +81,8 @@ postgresql:
       verify: "pip --require-hashes", notes: "대상 OS 컨테이너 안에서 /opt/patroni 경로에 venv 생성 후 통째로 패키징" }
   - { package: pgbadger,             repo: pgbadger,   status: todo, source_type: perl,    vendor: darold,  page: https://github.com/darold/pgbadger/releases,
       verify: "태그 + sha256 기록", notes: "" }
+  - { package: postgresqltop,        repo: postgresqltop0, status: done, source_type: source, vendor: bylee5, page: https://github.com/bylee5/postgresqltop/releases,
+      verify: "휠 sha256(spec 고정)", notes: "Python TUI 모니터. 시스템 python3(3.9), psycopg 3.2.13(binary, libpq 포함)·typing_extensions 4.16.0 휠 동봉 → OS libpq 불필요. 설정 /etc/postgresqltop/postgresqltop.ini (~/.postgresqltop.ini 우선)" }
   - { package: postgres-exporter,    repo: postgres-exporter, status: todo, source_type: go-bin, vendor: prometheus-community, page: https://github.com/prometheus-community/postgres_exporter/releases,
       verify: "릴리스 체크섬", notes: "" }
 
