@@ -37,6 +37,8 @@ mysql:
       verify: "MD5 + GPG", notes: "InnoDB Cluster/ReplicaSet 사용 시" }
   - { package: gh-ost,               repo: gh-ost,     status: todo, source_type: go-bin,  vendor: GitHub,  page: https://github.com/github/gh-ost/releases,
       verify: "릴리스 체크섬", notes: "" }
+  - { package: mysqltop,             repo: mysqltop0,  status: done, source_type: source, vendor: bylee5, page: https://github.com/bylee5/mysqltop/releases,
+      verify: "휠 sha256(spec 고정)", notes: "MySQL/MariaDB Python TUI 모니터. 시스템 python3(3.9), PyMySQL 1.2.4 휠 동봉, Recommends python3-cryptography(TLS 없이 caching_sha2 접속 시). 설정 /etc/mysqltop/mysqltop.ini (~/.mysqltop.ini 우선)" }
 
 percona:
   - { package: percona-server,       repo: ps84,       status: todo, source_type: tarball, vendor: Percona, page: https://www.percona.com/downloads,
